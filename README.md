@@ -1,2 +1,2 @@
 # sauvc
-My sauvc 
+My sauvc package
