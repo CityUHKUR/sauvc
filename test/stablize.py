@@ -50,7 +50,7 @@ print("Waiting for the vehicle to arm")
 master.motors_armed_wait()
 print('Armed!')
 
-# stablize for 30 seconds
+# stablize
 time.sleep(30)
 
 # Disarm

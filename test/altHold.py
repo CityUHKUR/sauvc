@@ -103,9 +103,9 @@ print("Waiting for the vehicle to arm")
 master.motors_armed_wait()
 print('Armed!')
 
-# alt hold for 30 sec
+# hold altitude
 set_target_depth(-0.5)
-time.sleep(20)
+time.sleep(30)
 
 
 # Disarm
