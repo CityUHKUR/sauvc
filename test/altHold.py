@@ -106,6 +106,8 @@ print('Armed!')
 # hold altitude
 set_target_depth(-0.5)
 time.sleep(30)
+set_target_depth(-1.0)
+time.sleep(30)
 
 
 # Disarm
