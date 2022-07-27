@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-stablize mode onlys
+stablize mode only
 """
 
 import sys

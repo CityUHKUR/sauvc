@@ -54,11 +54,12 @@ print('Armed!')
 for i in range(2):
     master.mav.manual_control_send(
         master.target_system,
-        0,   
-        0,
-        0,   # 0 to 1000, static=500, down<500, up>500
-        0,
-        0)
+        0,	  # -1000 to 1000, static=0, backward<0, forward>0
+        0,    # -1000 to 1000, static=0, left<0, right>0
+        100,	# 0 to 1000, static=500, downward<500, upward>500
+        0,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
+        0)    # useless
+    time.sleep(1)
 
 # Disarm
 # master.arducopter_disarm() or:

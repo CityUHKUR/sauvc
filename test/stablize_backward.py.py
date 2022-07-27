@@ -54,7 +54,7 @@ print('Armed!')
 for i in range(10):
     master.mav.manual_control_send(
         master.target_system,
-        -1000,   # -1000 to 1000, static=0, backward<0, forward>0
+        -800,   # -1000 to 1000, static=0, backward<0, forward>0
         0,
         0,
         0,
