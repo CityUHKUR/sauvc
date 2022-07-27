@@ -51,7 +51,7 @@ master.motors_armed_wait()
 print('Armed!')
 
 # up
-for i in range(10):
+for i in range(2):
     master.mav.manual_control_send(
         master.target_system,
         0,   
@@ -59,6 +59,7 @@ for i in range(10):
         1000,   # 0 to 1000, static=500, down<500, up>500
         0,
         0)
+    time.sleep(1)
 
 # Disarm
 # master.arducopter_disarm() or:
