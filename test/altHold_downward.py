@@ -51,7 +51,7 @@ master.motors_armed_wait()
 print('Armed!')
 
 # down
-for i in range(10):
+for i in range(2):
     master.mav.manual_control_send(
         master.target_system,
         0,   
