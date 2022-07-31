@@ -83,6 +83,15 @@ print("Waiting for the vehicle to arm")
 master.motors_armed_wait()
 print('Armed!')
 
+# stop thruster first
+master.mav.manual_control_send(
+    master.target_system,
+    0,	  # -1000 to 1000, static=0, backward<0, forward>0
+    0,    # -1000 to 1000, static=0, left<0, right>0
+    500,	# 0 to 1000, static=500, downward<500, upward>500
+    -800,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
+    0)    # useless
+
 # anticlockwise
 set_target_depth(-0.5)
 time.sleep(2)
