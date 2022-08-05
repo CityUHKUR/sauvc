@@ -44,6 +44,7 @@ def set_target_depth(depth):
 
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
+boot_time = time.time()
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
