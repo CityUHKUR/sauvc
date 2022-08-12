@@ -10,7 +10,7 @@ from pymavlink import mavutil
 import time
 
 # Create the connection
-master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
+master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)    
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
@@ -36,31 +36,45 @@ master.mav.set_mode_send(
     mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
     mode_id)
 
-# Arm
-# master.arducopter_arm() or:
-master.mav.command_long_send(
-    master.target_system,
-    master.target_component,
-    mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-    0,
-    1, 0, 0, 0, 0, 0, 0)
+try:
+    # Arm
+    # master.arducopter_arm() or:
+    master.mav.command_long_send(
+        master.target_system,
+        master.target_component,
+        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+        0,
+        1, 0, 0, 0, 0, 0, 0)
 
-# wait until arming confirmed (can manually check with master.motors_armed())
-print("Waiting for the vehicle to arm")
-master.motors_armed_wait()
-print('Armed!')
+    # wait until arming confirmed (can manually check with master.motors_armed())
+    print("Waiting for the vehicle to arm")
+    master.motors_armed_wait()
+    print('Armed!')
 
-# stablize
-time.sleep(30)
+    # stablize
+    time.sleep(30)
 
-# Disarm
-# master.arducopter_disarm() or:
-master.mav.command_long_send(
-    master.target_system,
-    master.target_component,
-    mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-    0,
-    0, 0, 0, 0, 0, 0, 0)
+    # Disarm
+    # master.arducopter_disarm() or:
+    master.mav.command_long_send(
+        master.target_system,
+        master.target_component,
+        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+        0,
+        0, 0, 0, 0, 0, 0, 0)
 
-# wait until disarming confirmed
-master.motors_disarmed_wait()
+    # wait until disarming confirmed
+    master.motors_disarmed_wait()
+    
+except KeyboardInterrupt:
+    # Disarm
+    # master.arducopter_disarm() or:
+    master.mav.command_long_send(
+        master.target_system,
+        master.target_component,
+        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+        0,
+        0, 0, 0, 0, 0, 0, 0)
+
+    # wait until disarming confirmed
+    master.motors_disarmed_wait()
