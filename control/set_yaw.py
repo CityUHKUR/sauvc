@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 """
-move downward in altitude hold mode
+set target yaw
 """
 
+import time
 import sys
+import math
 # Import mavutil
 from pymavlink import mavutil
-import time
+# Imports for attitude
+from pymavlink.quaternion import QuaternionBase
 
 def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
@@ -40,6 +43,22 @@ def set_target_depth(depth):
         afx=0, afy=0, afz=0, yaw=0, yaw_rate=0
         # accelerations in NED frame [N], yaw, yaw_rate
         #  (all not supported yet, ignored in GCS Mavlink)
+    )
+
+def set_target_attitude(roll, pitch, yaw):
+    """ Sets the target attitude while in depth-hold mode.
+
+    'roll', 'pitch', and 'yaw' are angles in degrees.
+
+    """
+    master.mav.set_attitude_target_send(
+        int(1e3 * (time.time() - boot_time)), # ms since boot
+        master.target_system, master.target_component,
+        # allow throttle to be controlled by depth_hold mode
+        mavutil.mavlink.ATTITUDE_TARGET_TYPEMASK_THROTTLE_IGNORE,
+        # -> attitude quaternion (w, x, y, z | zero-rotation is 1, 0, 0, 0)
+        QuaternionBase([math.radians(angle) for angle in (roll, pitch, yaw)]),
+        0, 0, 0, 0 # roll rate, pitch rate, yaw rate, thrust
     )
 
 # Create the connection
@@ -85,31 +104,17 @@ try:
     master.motors_armed_wait()
     print('Armed!')
 
-    # stop thruster first
-    master.mav.manual_control_send(
-        master.target_system,
-        0,	  # -1000 to 1000, static=0, backward<0, forward>0
-        0,    # -1000 to 1000, static=0, left<0, right>0
-        500,	# 0 to 1000, static=500, downward<500, upward>500
-        0,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
-        0)    # useless
-
-    # set depth
+    # hold altitude
     set_target_depth(-0.5)
-    time.sleep(2)
 
-    # downward
-    for i in range(3):
-        master.mav.manual_control_send(
-            master.target_system,
-            0,	  # -1000 to 1000, static=0, backward<0, forward>0
-            0,    # -1000 to 1000, static=0, left<0, right>0
-            100,	# 0 to 1000, static=500, downward<500, upward>500
-            0,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
-            0)    # useless
+    set_target_attitude(0,0,0)
+    for i in range(2):
+        msg = master.recv_match()
+        alt = master.messages["VFR_HUD"].alt
+        print('current altitude:',alt)
         time.sleep(1)
-    # wait to see if it move back to target height
-    time.sleep(3)
+
+
 
     # Disarm
     # master.arducopter_disarm() or:

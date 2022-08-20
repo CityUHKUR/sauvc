@@ -108,8 +108,10 @@ try:
     set_target_depth(-0.5)
     for i in range(5):
         msg = master.recv_match()
-        alt = master.messages["VFR_HUD"].alt
-        print('current altitude:',alt)
+        if not msg:
+            continue
+        if msg.get_type() == 'VFR_HUD':
+            print('current altitude:',msg.alt)
         time.sleep(1)
 
     set_target_depth(-1.0)

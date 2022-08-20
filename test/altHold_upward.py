@@ -99,7 +99,7 @@ try:
     time.sleep(2)
     
     # up
-    for i in range(2):
+    for i in range(3):
         master.mav.manual_control_send(
             master.target_system,
             0,	  # -1000 to 1000, static=0, backward<0, forward>0
@@ -108,6 +108,8 @@ try:
             0,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
             0)    # useless
         time.sleep(1)
+    # wait to see if it move back to target height
+    time.sleep(3)
 
     # Disarm
     # master.arducopter_disarm() or:
