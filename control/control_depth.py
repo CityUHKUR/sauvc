@@ -112,21 +112,20 @@ try:
     target_pressure = 1000 - target_depth * 100
     z_controller.set_target(target_pressure)
 
+    z = None
+    
     # control depths
     while((time.time() - boot_time) < 10):
-        #msg = master.recv_match()
-        #if not msg:
-        #    continue
-        #if msg.get_type() == 'SCALED_PRESSURE':
-            #print(msg.press_abs)
-            #z_ = z_controller.update(msg.press_abs)
-        #    print(z_)
-        #    z = 500 + z_
-
-        press = master.messages["SCALED_PRESSURE"].press_abs
-        z_ = z_controller.update(press)
-        z = 500 + z_
-        send_manual_control(0,0,z,0)
+        msg = master.recv_match()
+        if not msg:
+            continue
+        if msg.get_type() == 'SCALED_PRESSURE':
+            print(msg.press_abs)
+            z_ = z_controller.update(msg.press_abs)
+            print(z_)
+            z = 500 + z_
+        if(z):
+            send_manual_control(0,0,z,0)
         time.sleep(0.01)
 
     # Disarm
