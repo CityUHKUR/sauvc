@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-control to target yaw
+control to target depth
 """
 
 import time
@@ -14,10 +14,10 @@ import numpy as np
 class PID:
     def __init__(self):
         # Todo: testing & change to suitable value
-        self.Kp = 500
+        self.Kp = 100
         self.Ki = 30
         self.Kd = 30
-        self.max_output = 1000
+        self.max_output = 500
         self.ITerm_max = 10
         self.delta_time = 0.01  # 100Hz
         self.sensitivity = 0.02
@@ -41,11 +41,6 @@ class PID:
 
         if abs(_error) < self.sensitivity:
             return 0
-        
-        if (_error < -math.pi):
-            _error += 2 * math.pi
-        elif (_error > math.pi):
-            _error -= 2 * math.pi
 
         # calculate P term
         _p = self.Kp * _error
@@ -73,7 +68,7 @@ class PID:
         elif output < -self.max_output:
             output = -self.max_output
 
-        return int(output)
+        return output
 
     def set_target(self, goal):
         self.target = goal
@@ -88,10 +83,13 @@ def send_manual_control(x,y,z,r):
         r,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
         0)    # useless
 
+def meterToPressure():
+    pass
+
 ### Start program ###
 
-# Create yaw comtroller
-yaw_controller = PID()
+# Create z comtroller
+z_controller = PID()
 
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
@@ -104,26 +102,28 @@ mode = 'MANUAL'
 mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
-# Arm
-master.arducopter_arm()
-print("Waiting for the vehicle to arm")
-master.motors_armed_wait()
-print('Armed!')
-
 try:
-    # set target yaw
-    yaw_controller.set_target(0)
+    # Arm
+    master.arducopter_arm()
+    print("Waiting for the vehicle to arm")
+    master.motors_armed_wait()
+    print('Armed!')
 
-    # control yaw
+    # set target depth
+    target_depth = -0.5
+    target_pressure = 1000 - target_depth * 100
+    z_controller.set_target(target_pressure)
+
+    # control depths
     while((time.time() - boot_time) < 10):
         msg = master.recv_match()
         if not msg:
             continue
-        if msg.get_type() == 'ATTITUDE':
-            print(msg.yaw)
-            r = yaw_controller.update(msg.yaw)
-            print(r)
-        #send_manual_control(0,0,500,r)
+        if msg.get_type() == 'SCALED_PRESSURE':
+            print(msg.press_abs)
+            z = z_controller.update(msg.press_abs)
+            print(z)
+        send_manual_control(200,0,z,0)
         time.sleep(0.01)
 
     # Disarm
