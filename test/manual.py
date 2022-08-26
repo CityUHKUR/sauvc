@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-manual mode
+manual contor
 """
 
 import sys
@@ -19,7 +19,6 @@ def send_manual_control(x,y,z,r):
     )
 
 
-
 ### Start program ###
 
 # Create the connection
@@ -27,18 +26,22 @@ master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
+# Arm
+master.arducopter_arm()
+print("Waiting for the vehicle to arm")
+# Wait to arm
+master.motors_armed_wait()
+print('Armed!')
+
 # Choose a mode
 mode = 'MANUAL'
 mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
-    # stop thruster first
-    send_manual_control(0,0,500,0)
-
-    # manual control
-    send_manual_control(0,0,500,0)
-    time.sleep(1)
+    for i in range(5):
+        send_manual_control(0,800,500,0)
+        time.sleep(1)
 
     # Disarm
     master.arducopter_disarm()
