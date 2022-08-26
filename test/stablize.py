@@ -5,9 +5,12 @@ stablize mode only
 """
 
 import sys
-# Import mavutil
 from pymavlink import mavutil
 import time
+
+
+
+### Start program ###
 
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)    
@@ -17,6 +20,7 @@ master.wait_heartbeat()
 # Arm
 master.arducopter_arm()
 print("Waiting for the vehicle to arm")
+# Wait to arm
 master.motors_armed_wait()
 print('Armed!')
 
@@ -30,26 +34,16 @@ try:
     time.sleep(30)
 
     # Disarm
-    # master.arducopter_disarm() or:
-    master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-        0,
-        0, 0, 0, 0, 0, 0, 0)
-
-    # wait until disarming confirmed
+    master.arducopter_disarm()
+    print("Waiting for the vehicle to disarm")
+    # Wait for disarm
     master.motors_disarmed_wait()
-    
+    print('Disarmed!')
+
 except KeyboardInterrupt:
     # Disarm
-    # master.arducopter_disarm() or:
-    master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-        0,
-        0, 0, 0, 0, 0, 0, 0)
-
-    # wait until disarming confirmed
+    master.arducopter_disarm()
+    print("Waiting for the vehicle to disarm")
+    # Wait for disarm
     master.motors_disarmed_wait()
+    print('Disarmed!')

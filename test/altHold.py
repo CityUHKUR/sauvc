@@ -7,7 +7,6 @@ altitude hold mode only
 import time
 import sys
 import math
-# Import mavutil
 from pymavlink import mavutil
 # Imports for attitude
 from pymavlink.quaternion import QuaternionBase
@@ -19,7 +18,8 @@ def send_manual_control(x,y,z,r):
         y,    # -1000 to 1000, static=0, left<0, right>0
         z,    # 0 to 1000, static=500, downward<500, upward>500
         r,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
-        0)	  # useless (for other purpose)
+        0    # useless (for other purpose)
+    )
 
 def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
@@ -68,6 +68,10 @@ def set_target_attitude(roll, pitch, yaw):
         0, 0, 0, 0 # roll rate, pitch rate, yaw rate, thrust
     )
 
+
+
+### Start program ###
+
 # Create the connectionc
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
 boot_time = time.time()
@@ -86,6 +90,9 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
+    # stop thruster first
+    send_manual_control(0,0,500,0)
+
     # hold altitude(depth)
     set_target_depth(-0.5)
     for i in range(3):
@@ -98,14 +105,21 @@ try:
         alt = master.messages["VFR_HUD"].alt
         print('current altitude:',alt)
         time.sleep(1)
+    
+    # wait to see if it hold position
+    time.sleep(5)
 
     # Disarm
     master.arducopter_disarm()
+    print("Waiting for the vehicle to disarm")
     # Wait for disarm
     master.motors_disarmed_wait()
+    print('Disarmed!')
 
 except KeyboardInterrupt:
     # Disarm
     master.arducopter_disarm()
+    print("Waiting for the vehicle to disarm")
     # Wait for disarm
     master.motors_disarmed_wait()
+    print('Disarmed!')

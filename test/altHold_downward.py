@@ -5,7 +5,6 @@ move downward in altitude hold mode
 """
 
 import sys
-# Import mavutil
 from pymavlink import mavutil
 import time
 
@@ -16,7 +15,8 @@ def send_manual_control(x,y,z,r):
         y,    # -1000 to 1000, static=0, left<0, right>0
         z,    # 0 to 1000, static=500, downward<500, upward>500
         r,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
-        0)	  # useless (for other purpose)
+        0    # useless (for other purpose)
+    )
 
 def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
@@ -51,6 +51,10 @@ def set_target_depth(depth):
         #  (all not supported yet, ignored in GCS Mavlink)
     )
 
+
+
+### Start program ###
+
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
 boot_time = time.time()
@@ -69,44 +73,32 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
+    # stop thruster first
+    send_manual_control(0,0,500,0)
+    
     # set depth
     set_target_depth(-0.5)
     time.sleep(2)
 
     # downward
     for i in range(3):
-        master.mav.manual_control_send(
-            master.target_system,
-            0,	  # -1000 to 1000, static=0, backward<0, forward>0
-            0,    # -1000 to 1000, static=0, left<0, right>0
-            100,	# 0 to 1000, static=500, downward<500, upward>500
-            0,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
-            0)    # useless
+        send_manual_control(0,0,100,0)
         time.sleep(1)
+    
     # wait to see if it move back to target height
     time.sleep(3)
 
     # Disarm
-    # master.arducopter_disarm() or:
-    master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-        0,
-        0, 0, 0, 0, 0, 0, 0)
-
-    # wait until disarming confirmed
+    master.arducopter_disarm()
+    print("Waiting for the vehicle to disarm")
+    # Wait for disarm
     master.motors_disarmed_wait()
+    print('Disarmed!')
 
 except KeyboardInterrupt:
     # Disarm
-    # master.arducopter_disarm() or:
-    master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-        0,
-        0, 0, 0, 0, 0, 0, 0)
-
-    # wait until disarming confirmed
+    master.arducopter_disarm()
+    print("Waiting for the vehicle to disarm")
+    # Wait for disarm
     master.motors_disarmed_wait()
+    print('Disarmed!')
