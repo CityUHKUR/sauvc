@@ -9,7 +9,7 @@ import sys
 import math
 from pymavlink import mavutil
 
-class PID:
+class YAW_PID:
     def __init__(self):
         # Todo: testing & change to suitable value
         self.Kp = 500
@@ -93,7 +93,7 @@ def send_manual_control(x,y,z,r):
 ### Start program ###
 
 # Create yaw comtroller
-yaw_controller = PID()
+r_controller = YAW_PID()
 
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
@@ -101,20 +101,21 @@ boot_time = time.time()
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
+# Arm
+master.arducopter_arm()
+print("Waiting for the vehicle to arm")
+# Wait to arm
+master.motors_armed_wait()
+print('Armed!')
+
 # Choose a mode
 mode = 'MANUAL'
 mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
-# Arm
-master.arducopter_arm()
-print("Waiting for the vehicle to arm")
-master.motors_armed_wait()
-print('Armed!')
-
 try:
     # set target yaw
-    yaw_controller.set_target(0)
+    r_controller.set_target(0)
 
     # control yaw
     while((time.time() - boot_time) < 30):
@@ -123,7 +124,7 @@ try:
             continue
         if msg.get_type() == 'ATTITUDE':
             print(msg.yaw)
-            r = yaw_controller.update(msg.yaw)
+            r = r_controller.update(msg.yaw)
             print(r)
         #send_manual_control(0,0,500,r)
         time.sleep(0.01)

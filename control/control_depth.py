@@ -11,7 +11,7 @@ from pymavlink import mavutil
 import numpy as np
 
 
-class PID:
+class Z_PID:
     def __init__(self):
         # Todo: testing & change to suitable value
         self.Kp = 100
@@ -87,7 +87,7 @@ def meterToPressure():
     pass
 
 # Create yaw comtroller
-z_controller = PID()
+z_controller = Z_PID()
 
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
@@ -95,25 +95,26 @@ boot_time = time.time()
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
+# Arm
+master.arducopter_arm()
+print("Waiting for the vehicle to arm")
+# Wait to arm
+master.motors_armed_wait()
+print('Armed!')
+
 # Choose a mode
 mode = 'MANUAL'
 mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
-    # Arm
-#    master.arducopter_arm()
-#    print("Waiting for the vehicle to arm")
-#    master.motors_armed_wait()
-#    print('Armed!')
-
     # set target depth
     target_depth = -0.5
     target_pressure = 1000 - target_depth * 100
     z_controller.set_target(target_pressure)
 
     z = None
-    
+
     # control depths
     while((time.time() - boot_time) < 10):
         msg = master.recv_match()
