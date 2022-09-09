@@ -38,6 +38,8 @@ mode = 'MANUAL'
 mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
+gate_found = False
+
 try:
     # stop thruster first
     send_manual_control(0,0,500,0)
@@ -47,7 +49,7 @@ try:
     if not gate_found:
         # turn right first
         for i in range(3):
-            send_manual_control(200,0,500,100):
+            send_manual_control(0,0,500,400)
             time.sleep(1)
         direction = 1
         count = 1
@@ -58,15 +60,15 @@ try:
         if count == 50:     # if gate not found in () second, stop it
             break 
 
-        if (count // 6 == 0):
+        if (count % 6 == 0):
             direction *= -1
         
-        send_manual_control(200,0,500,100 * direction): # move forward and change angle
+        send_manual_control(200,0,500,400 * direction) # move forward and change angle
         time.sleep(1)
-
+        print(count,' ', direction)
         count += 1
 
-    # stop when found the gate
+    # stop when found the gate or count stop
     send_manual_control(0,0,500,0)
     time.sleep(3)
 
@@ -79,6 +81,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

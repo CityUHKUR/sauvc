@@ -39,11 +39,13 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
+
     for i in range(5):
-        send_manual_control(0,800,500,0)
+        send_manual_control(800,0,500,0)
         time.sleep(1)
 
     # Disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -52,6 +54,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
