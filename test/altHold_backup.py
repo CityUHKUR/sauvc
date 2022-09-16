@@ -1,31 +1,24 @@
+
+
 #!/usr/bin/env python
 
 """
-move upward in altitude hold mode
+altitude hold mode only
 """
 
-import sys
-from pymavlink import mavutil
 import time
-
-def send_manual_control(x,y,z,r):
-    master.mav.manual_control_send(
-        master.target_system,
-        x,	  # -1000 to 1000, static=0, backward<0, forward>0
-        y,    # -1000 to 1000, static=0, left<0, right>0
-        z,    # 0 to 1000, static=500, downward<500, upward>500
-        r,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
-        0    # useless (for other purpose)
-    )
+import sys
+import math
+# Import mavutil
+from pymavlink import mavutil
+# Imports for attitude
+from pymavlink.quaternion import QuaternionBase
 
 def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
-
     Uses https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT
-
     'depth' is technically an altitude, so set as negative meters below the surface
         -> set_target_depth(-1.5) # sets target to 1.5m below the water surface.
-
     """
     master.mav.set_position_target_global_int_send(
         int(1e3 * (time.time() - boot_time)), # ms since boot
@@ -51,9 +44,19 @@ def set_target_depth(depth):
         #  (all not supported yet, ignored in GCS Mavlink)
     )
 
-
-
-### Start program ###
+def set_target_attitude(roll, pitch, yaw):
+    """ Sets the target attitude while in depth-hold mode.
+    'roll', 'pitch', and 'yaw' are angles in degrees.
+    """
+    master.mav.set_attitude_target_send(
+        int(1e3 * (time.time() - boot_time)), # ms since boot
+        master.target_system, master.target_component,
+        # allow throttle to be controlled by depth_hold mode
+        mavutil.mavlink.ATTITUDE_TARGET_TYPEMASK_THROTTLE_IGNORE,
+        # -> attitude quaternion (w, x, y, z | zero-rotation is 1, 0, 0, 0)
+        QuaternionBase([math.radians(angle) for angle in (roll, pitch, yaw)]),
+        0, 0, 0, 0 # roll rate, pitch rate, yaw rate, thrust
+    )
 
 # Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
@@ -61,46 +64,55 @@ boot_time = time.time()
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
+# Choose a mode
+mode = 'ALT_HOLD'
+
+# Check if mode is available
+if mode not in master.mode_mapping():
+    print('Unknown mode : {}'.format(mode))
+    print('Try:', list(master.mode_mapping().keys()))
+    sys.exit(1)
+
+# Get mode ID
+mode_id = master.mode_mapping()[mode]
+# Set new mode
+# master.mav.command_long_send(
+#    master.target_system, master.target_component,
+#    mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
+#    0, mode_id, 0, 0, 0, 0, 0) or:
+# master.set_mode(mode_id) or:
+master.mav.set_mode_send(
+    master.target_system,
+    mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
+    mode_id)
+
 # Arm
-master.arducopter_arm()
+# master.arducopter_arm() or:
+master.mav.command_long_send(
+    master.target_system,
+    master.target_component,
+    mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+    0,
+    1, 0, 0, 0, 0, 0, 0)
+
+# wait until arming confirmed (can manually check with master.motors_armed())
 print("Waiting for the vehicle to arm")
 master.motors_armed_wait()
 print('Armed!')
 
-# Choose a mode
-mode = 'ALT_HOLD'
-mode_id = master.mode_mapping()[mode]
-master.set_mode(mode_id)
+# hold altitude
+set_target_depth(-0.5)
+time.sleep(30)
 
-try:
-    # stop thruster first
-    send_manual_control(0,0,500,0)
-    
-    # set depth
-    set_target_depth(-0.5)
-    time.sleep(2)
-    
-    # up
-    for i in range(3):
-        send_manual_control(0,0,900,0)
-        time.sleep(1)
-    
-    # wait to see if it move back to target height
-    time.sleep(3)
 
-    # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
-    master.arducopter_disarm()
-    print("Waiting for the vehicle to disarm")
-    # Wait for disarm
-    master.motors_disarmed_wait()
-    print('Disarmed!')
+# Disarm
+# master.arducopter_disarm() or:
+master.mav.command_long_send(
+    master.target_system,
+    master.target_component,
+    mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+    0,
+    0, 0, 0, 0, 0, 0, 0)
 
-except KeyboardInterrupt:
-    # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
-    master.arducopter_disarm()
-    print("Waiting for the vehicle to disarm")
-    # Wait for disarm
-    master.motors_disarmed_wait()
-    print('Disarmed!')
+# wait until disarming confirmed
+master.motors_disarmed_wait()

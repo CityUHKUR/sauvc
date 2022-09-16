@@ -49,7 +49,7 @@ try:
     if not gate_found:
         # turn right first
         for i in range(3):
-            send_manual_control(0,0,500,400)
+            send_manual_control(200,200,500,0)
             time.sleep(1)
         direction = 1
         count = 1
@@ -73,6 +73,7 @@ try:
     time.sleep(3)
 
     # Disarm
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -81,7 +82,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
-    time.sleep(3)
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

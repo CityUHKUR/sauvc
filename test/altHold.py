@@ -91,25 +91,34 @@ master.set_mode(mode_id)
 
 try:
     # stop thruster first
-    send_manual_control(0,0,500,0)
+    # send_manual_control(0,0,500,0)
 
     # hold altitude(depth)
     set_target_depth(-0.5)
-    for i in range(3):
+    for i in range(5):
         alt = master.messages["VFR_HUD"].alt
-        print('current altitude:',alt)
+        prs = master.messages["SCALED_PRESSURE"].press_abs
+        # if alt:
+        print('current altitude:' ,alt)
+        # if prs:
+        print('current pressure: ', prs)
         time.sleep(1)
 
     set_target_depth(-1.0)
     for i in range(3):
         alt = master.messages["VFR_HUD"].alt
-        print('current altitude:',alt)
+        prs = master.messages["SCALED_PRESSURE"].press_abs
+        # if alt:
+        print('current altitude:' ,alt)
+        # if prs:
+        print('current pressure: ', prs)
         time.sleep(1)
     
     # wait to see if it hold position
     time.sleep(5)
 
     # Disarm
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -118,6 +127,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

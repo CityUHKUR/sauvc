@@ -69,10 +69,8 @@ try:
         print(count,' ', direction)
         count += 1
 
-    # stop when found the gate or count stop
-    send_manual_control(0,0,500,0)
-    time.sleep(3)
     # Disarm
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -81,7 +79,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
-    time.sleep(3)
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

@@ -41,7 +41,7 @@ master.set_mode(mode_id)
 try:
 
     for i in range(5):
-        send_manual_control(800,0,500,0)
+        send_manual_control(0,0,900,0)
         time.sleep(1)
 
     # Disarm

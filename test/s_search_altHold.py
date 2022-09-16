@@ -130,6 +130,7 @@ try:
     
 
     # Disarm
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -138,7 +139,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
-    time.sleep(3)
+    time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
