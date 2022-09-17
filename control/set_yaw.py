@@ -81,13 +81,17 @@ master.set_mode(mode_id)
 try:
     # hold altitude
     set_target_depth(-0.5)
-    time.sleep(1)
 
-    set_target_attitude(0,0,0)
-    for i in range(2):
-        msg = master.recv_match()
-        alt = master.messages["VFR_HUD"].alt
-        print('current altitude:',alt)
+    # go for a spin
+    # (set target yaw from 0 to 500 degrees in steps of 10, one update per second)
+    roll_angle = pitch_angle = 0
+    for yaw_angle in range(0, 500, 10):
+        set_target_attitude(roll_angle, pitch_angle, yaw_angle)
+        time.sleep(1) # wait for a second
+
+    # spin the other way with 3x larger steps
+    for yaw_angle in range(500, 0, -30):
+        set_target_attitude(roll_angle, pitch_angle, yaw_angle)
         time.sleep(1)
 
     # Disarm
