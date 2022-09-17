@@ -64,7 +64,7 @@ try:
         if (count % 6 == 0):
             direction *= -1
         
-        send_manual_control(200,0,500,400 * direction) # move forward and change angle
+        send_manual_control(200,200 * direction,500,0) # move forward and change angle
         time.sleep(1)
         print(count,' ', direction)
         count += 1

@@ -7,9 +7,9 @@ altitude hold mode only
 import time
 import sys
 import math
+
 from pymavlink import mavutil
-# Imports for attitude
-from pymavlink.quaternion import QuaternionBase
+from pymavlink.quaternion import QuaternionBase # Imports for attitude
 
 def send_manual_control(x,y,z,r):
     master.mav.manual_control_send(
@@ -90,20 +90,20 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
-    # stop thruster first
-    # send_manual_control(0,0,500,0)
 
     # hold altitude(depth)
     set_target_depth(-0.5)
     for i in range(5):
-        alt = master.messages["VFR_HUD"].alt
-        prs = master.messages["SCALED_PRESSURE"].press_abs
-        # if alt:
-        print('current altitude:' ,alt)
-        # if prs:
-        print('current pressure: ', prs)
+        msg = master.recv_match()
+        if msg.get_type == 'SCALED_PRESSURE':
+            print('current pressure: ', msg.press_abs)
+        if msg.get_type == 'SCALED_PRESSURE2':
+            print('sub pressure: ', msg.press_abs)
+        if msg.get_type == 'VFR_HUD':
+            print('current depth: ',msg.alt)
         time.sleep(1)
 
+    """
     set_target_depth(-1.0)
     for i in range(3):
         alt = master.messages["VFR_HUD"].alt
@@ -113,9 +113,7 @@ try:
         # if prs:
         print('current pressure: ', prs)
         time.sleep(1)
-    
-    # wait to see if it hold position
-    time.sleep(5)
+    """
 
     # Disarm
     time.sleep(3)   # Wait 3 sec to disarm
@@ -127,7 +125,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

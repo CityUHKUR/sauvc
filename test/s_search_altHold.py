@@ -93,8 +93,6 @@ master.set_mode(mode_id)
 gate_found = False
 
 try:
-    # stop thruster first
-    send_manual_control(0,0,500,0)
 
     # hold altitude(depth)
     set_target_depth(-0.5)
@@ -105,7 +103,7 @@ try:
     if not gate_found:
         # turn right first
         for i in range(3):
-            send_manual_control(200,0,500,400)
+            send_manual_control(200,200,500,0)
             time.sleep(1)
         direction = 1
         count = 1
@@ -119,7 +117,7 @@ try:
         if (count % 6 == 0):
             direction *= -1
         
-        send_manual_control(200,0,500,400 * direction) # move forward and change angle
+        send_manual_control(200,200 * direction,500,0) # move forward and change angle
         time.sleep(1)
 
         count += 1
@@ -132,14 +130,13 @@ try:
     # Disarm
     time.sleep(3)   # Wait 3 sec to disarm
     master.arducopter_disarm()
-    print("Waiting for the vehicle to disarm")
+    print("Waiting for the vehicle to disarm")5
     # Wait for disarm
     master.motors_disarmed_wait()
     print('Disarmed!')
 
 except KeyboardInterrupt:
-    # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
+    # Disarmn
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
