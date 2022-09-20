@@ -11,7 +11,7 @@ import threading
 
 import control
 
-from pymavlink import mavuti
+from pymavlink import mavutil
 
 ### Start program ###
 

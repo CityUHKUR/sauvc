@@ -38,8 +38,8 @@ class Messages():
             pub_prs = rospy.Publisher('/pressure', Int16, queue_size=10)
             pub_att = rospy.Publisher('/attitude/angle', Vector3, queue_size=10)
             pub_att_spd = rospy.Publisher('/attitude/angular_speed', Vector3, queue_size=10)
-            pub_att_qua = rospy.Publihser('/attitude/quaternion', Quaternion, queue_size=10)
-            rospy.init_node('talker_data', anonymous=True)
+            pub_att_qua = rospy.Publisher('/attitude/quaternion', Quaternion, queue_size=10)
+            rospy.init_node('talker_data', anonymous=True, disable_signals=True)
             rate = rospy.Rate(10)
 
             while not rospy.is_shutdown():

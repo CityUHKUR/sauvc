@@ -11,7 +11,7 @@ from pymavlink import mavutil
 from pymavlink.quaternion import QuaternionBase # Imports for attitude
 
 def pub():
-    msg.pub()
+    msg.publish()
 
 def sub():
     while True:
