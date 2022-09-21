@@ -1,6 +1,7 @@
 # test on movement (
-alt_hold mode </br>
 stablize mode </br>
 separately test in all direction(forward, backward, leftward, rightward, upward, downward, clockwise, anticlockwise) </br>
 # update
-c
+remove altitude hold mode to altitude_Hold folder </br>
+stablize mode only </br>
+
