@@ -73,22 +73,20 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
-    # stop thruster first
+    ## initial depth ##
+    time.sleep(2)   # wait it go to zero depth
+    send_manual_control(0,0,400,0)
+    time.sleep(0.5)
     send_manual_control(0,0,500,0)
-
-    # set depth
-    set_target_depth(-0.5)
-    time.sleep(2)
+    time.sleep(1)   # wait it to hold depth
 
     # forward
-    for i in range(5):
-        send_manual_control(800,0,500,0)
-        time.sleep(1)
-    
-    # wait to see if it hold position
-    time.sleep(5)
+    t = time.time()
+    while (time.time() - t < 30):
+        send_manual_control(400,0,500,0)
 
     # Disarm
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
     time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
@@ -98,6 +96,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
     time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 """
-move upward in altitude hold mode
+move leftward in altitude hold mode
 """
 
 import sys
 from pymavlink import mavutil
 import time
+
 
 def send_manual_control(x,y,z,r):
     master.mav.manual_control_send(
@@ -17,6 +18,7 @@ def send_manual_control(x,y,z,r):
         r,    # -1000 to 1000, static=0, anti-clockwise<0, clockwise>0
         0    # useless (for other purpose)
     )
+    
 
 def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
@@ -73,23 +75,22 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
-    # stop thruster first
+    ## initial depth ##
+    time.sleep(2)   # wait it go to zero depth
+    send_manual_control(0,0,400,0)
+    time.sleep(0.5)
     send_manual_control(0,0,500,0)
-    
-    # set depth
-    set_target_depth(-0.5)
-    time.sleep(2)
-    
-    # up
-    for i in range(3):
-        send_manual_control(0,0,900,0)
-        time.sleep(1)
-    
-    # wait to see if it move back to target height
-    time.sleep(3)
+    time.sleep(1)   # wait it to hold depth
+
+    # leftward
+    t = time.time()
+    while (time.time() - t < 30):
+        send_manual_control(0,-400,500,0)
+
 
     # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -98,7 +99,8 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

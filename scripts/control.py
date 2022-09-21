@@ -65,3 +65,21 @@ class Control:
             QuaternionBase([math.radians(angle) for angle in (roll, pitch, yaw)]),
             0, 0, 0, 0 # roll rate, pitch rate, yaw rate, thrust
         )
+
+    def arm(self):
+        self.master.arducopter_arm()            # send arm command
+        print("Waiting for the vehicle to arm")
+        self.master.motors_armed_wait()         # wait to confirm its armed
+        print('Armed!')
+
+    def disarm(self):
+        self.send_manual_control(0,0,500,0)         # wait 3 sec to disarm
+        time.sleep(3)
+        self.master.arducopter_disarm()             # send disarm command
+        print("Waiting for the vehicle to disarm")
+        self.master.motors_disarmed_wait()          # wait to confirm disarm
+        print('Disarmed!')
+
+    def set_mode(self, mode):
+        mode_id = self.master.mode_mapping()[mode]  # match mode to mode_id
+        self.master.set_mode(mode_id)               # set mode

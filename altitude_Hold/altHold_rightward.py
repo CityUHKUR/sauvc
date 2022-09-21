@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 
 """
-altitude hold mode only
+move rightward in altitude hold mode
 """
 
-import time
 import sys
-import math
-
 from pymavlink import mavutil
-from pymavlink.quaternion import QuaternionBase # Imports for attitude
+import time
 
 def send_manual_control(x,y,z,r):
     master.mav.manual_control_send(
@@ -25,9 +22,10 @@ def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
 
     Uses https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT
-    
+
     'depth' is technically an altitude, so set as negative meters below the surface
         -> set_target_depth(-1.5) # sets target to 1.5m below the water surface.
+
     """
     master.mav.set_position_target_global_int_send(
         int(1e3 * (time.time() - boot_time)), # ms since boot
@@ -53,26 +51,11 @@ def set_target_depth(depth):
         #  (all not supported yet, ignored in GCS Mavlink)
     )
 
-def set_target_attitude(roll, pitch, yaw):
-    """ Sets the target attitude while in depth-hold mode.
-
-    'roll', 'pitch', and 'yaw' are angles in degrees.
-    """
-    master.mav.set_attitude_target_send(
-        int(1e3 * (time.time() - boot_time)), # ms since boot
-        master.target_system, master.target_component,
-        # allow throttle to be controlled by depth_hold mode
-        mavutil.mavlink.ATTITUDE_TARGET_TYPEMASK_THROTTLE_IGNORE,
-        # -> attitude quaternion (w, x, y, z | zero-rotation is 1, 0, 0, 0)
-        QuaternionBase([math.radians(angle) for angle in (roll, pitch, yaw)]),
-        0, 0, 0, 0 # roll rate, pitch rate, yaw rate, thrust
-    )
-
 
 
 ### Start program ###
 
-# Create the connectionc
+# Create the connection
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
 boot_time = time.time()
 # Wait a heartbeat before sending commands
@@ -90,33 +73,23 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
+    ## initial depth ##
+    time.sleep(2)   # wait it go to zero depth
+    send_manual_control(0,0,400,0)
+    time.sleep(0.5)
+    send_manual_control(0,0,500,0)
+    time.sleep(1)   # wait it to hold depth
+    
+    # rightward
+    t = time.time()
+    while (time.time() - t < 30):
+        send_manual_control(0,400,500,0)
 
-    # hold altitude(depth)
-    set_target_depth(-0.5)
-    for i in range(5):
-        msg = master.recv_match()
-        if msg.get_type == 'SCALED_PRESSURE':
-            print('current pressure: ', msg.press_abs)
-        if msg.get_type == 'SCALED_PRESSURE2':
-            print('sub pressure: ', msg.press_abs)
-        if msg.get_type == 'VFR_HUD':
-            print('current depth: ',msg.alt)
-        time.sleep(1)
 
-    """
-    set_target_depth(-1.0)
-    for i in range(3):
-        alt = master.messages["VFR_HUD"].alt
-        prs = master.messages["SCALED_PRESSURE"].press_abs
-        # if alt:
-        print('current altitude:' ,alt)
-        # if prs:
-        print('current pressure: ', prs)
-        time.sleep(1)
-    """
 
     # Disarm
-    time.sleep(3)   # Wait 3 sec to disarm
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -125,6 +98,7 @@ try:
 
 except KeyboardInterrupt:
     # Disarm
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
     time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
