@@ -1,1 +1,1 @@
-seperate function and main program in different file
+hold frequently used function into seperated file
