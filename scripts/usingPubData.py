@@ -27,10 +27,11 @@ master.wait_heartbeat()
 msg = messages.Messages(master)
 
 # Change message interval
-messages.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_RAW_IMU, 5)
-messages.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 5)
+msg.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_RAW_IMU, 5)
+msg.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 5)
 
 t1 = threading.Thread(target=pub, name='t1')
-t2 = threading.Thread(target=sub, name='t2')
+# t2 = threading.Thread(target=sub, name='t2')
 t1.start()
-t2.start()
+# t2.start()
+

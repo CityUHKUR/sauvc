@@ -32,7 +32,7 @@ class Messages():
         )
 
     def publish(self):
-        def talker():
+        def talker(master_):
             pub_acc = rospy.Publisher('/imu/acceleration', Vector3, queue_size=10)
             pub_gyro = rospy.Publisher('/imu/angular_acceleration', Vector3, queue_size=10)
             pub_prs = rospy.Publisher('/pressure', Int16, queue_size=10)
@@ -43,8 +43,10 @@ class Messages():
             rate = rospy.Rate(10)
 
             while not rospy.is_shutdown():
-                msg = self.master.recv_match()
-                if msg.get_type == 'RAW_IMU':
+                msg = master_.recv_match()
+                if not msg:
+                    continue
+                if msg.get_type() == 'RAW_IMU':
                     imu_acc = Vector3()    # mG
                     imu_acc.x = msg.xacc
                     imu_acc.y = msg.yacc
@@ -55,10 +57,10 @@ class Messages():
                     imu_gyro.y = msg.ygyro
                     imu_gyro.z = msg.zgyro
                     pub_gyro.publish(imu_gyro)
-                if msg.get_type == 'RAW_PRESSURE':
+                if msg.get_type() == 'RAW_PRESSURE':
                     prs = msg.press_abs    #hPa
                     pub_prs.publish(prs)
-                if msg.get_type == 'ATTITUDE':
+                if msg.get_type() == 'ATTITUDE':
                     att = Vector3()    #rad
                     att.x = msg.roll
                     att.y = msg.pitch
@@ -69,7 +71,7 @@ class Messages():
                     att_spd.y = msg.pitchspeed
                     att_spd.z = msg.yawspeed
                     pub_att_spd.publish(att_spd)
-                if msg.get_type == 'ATTITUDE_QUATERNION':
+                if msg.get_type() == 'ATTITUDE_QUATERNION':
                     q = Quaternion()
                     q.x = msg.q1
                     q.y = msg.q2
@@ -78,6 +80,6 @@ class Messages():
                     pub_att_qua.publish(q)
         
         try:
-            talker()
+            talker(self.master)
         except rospy.ROSInterruptException:
             pass

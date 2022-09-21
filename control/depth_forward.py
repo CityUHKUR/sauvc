@@ -111,7 +111,7 @@ try:
 
     # set target depth
     target_depth = -0.5
-    target_pressure = 1000 - target_depth * 100
+    target_pressure = 970 - target_depth * 100
     z_controller.set_target(target_pressure)
 
     # control depths
@@ -119,7 +119,7 @@ try:
         msg = master.recv_match()
         if not msg:
             continue
-        if msg.get_type() == 'SCALED_PRESSURE':
+        if msg.get_type() == 'SCALED_PRESSURE2':
             print(msg.press_abs)
             z = z_controller.update(msg.press_abs)
             print(z)
