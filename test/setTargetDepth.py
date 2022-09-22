@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
 """
-set target yaw
+altitude hold mode only
 """
 
 import time
 import sys
 import math
-# Import mavutil
+
 from pymavlink import mavutil
-# Imports for attitude
-from pymavlink.quaternion import QuaternionBase
+from pymavlink.quaternion import QuaternionBase # Imports for attitude
 
 def send_manual_control(x,y,z,r):
     master.mav.manual_control_send(
@@ -26,10 +25,9 @@ def set_target_depth(depth):
     """ Sets the target depth while in depth-hold mode.
 
     Uses https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT
-
+    
     'depth' is technically an altitude, so set as negative meters below the surface
         -> set_target_depth(-1.5) # sets target to 1.5m below the water surface.
-
     """
     master.mav.set_position_target_global_int_send(
         int(1e3 * (time.time() - boot_time)), # ms since boot
@@ -59,7 +57,6 @@ def set_target_attitude(roll, pitch, yaw):
     """ Sets the target attitude while in depth-hold mode.
 
     'roll', 'pitch', and 'yaw' are angles in degrees.
-
     """
     master.mav.set_attitude_target_send(
         int(1e3 * (time.time() - boot_time)), # ms since boot
@@ -71,21 +68,15 @@ def set_target_attitude(roll, pitch, yaw):
         0, 0, 0, 0 # roll rate, pitch rate, yaw rate, thrust
     )
 
-# Create the connection
+
+
+### Start program ###
+
+# Create the connectionc
 master = mavutil.mavlink_connection("/dev/ttyACM0", baud=115200)
 boot_time = time.time()
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
-
-
-yaw = None
-while not yaw:
-    msg = master.recv_match()
-    if not msg:
-        continue
-    if msg.get_type() == 'ATTITUDE':
-        yaw = msg.yaw
-        print(yaw)
 
 # Arm
 master.arducopter_arm()
@@ -99,34 +90,17 @@ mode_id = master.mode_mapping()[mode]
 master.set_mode(mode_id)
 
 try:
-    '''
-    # hold altitude
-    set_target_depth(-0.5)
-    '''
     ## initial depth ##
     time.sleep(2)   # wait it go to zero depth
-    send_manual_control(0,0,400,0)
-    time.sleep(0.5)
-    send_manual_control(0,0,500,0)
-    time.sleep(1)   # wait it to hold depth
+    set_target_depth(-0.5)
 
-    set_target_attitude(0, 0, yqw)
+    t = time.time()
+    while (time.time() - t < 30):
+        send_manual_control(0,0,500,0)
 
-    '''
-    # go for a spin
-    # (set target yaw from 0 to 500 degrees in steps of 10, one update per second)
-    roll_angle = pitch_angle = 0
-    for yaw_angle in range(0, 500, 10):
-        set_target_attitude(roll_angle, pitch_angle, yaw_angle)
-        time.sleep(1) # wait for a second
-
-    # spin the other way with 3x larger steps
-    for yaw_angle in range(500, 0, -30):
-        set_target_attitude(roll_angle, pitch_angle, yaw_angle)
-        time.sleep(1)
-    '''
-
-    # Disarm
+    ## Disarm ##
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm
@@ -134,7 +108,9 @@ try:
     print('Disarmed!')
 
 except KeyboardInterrupt:
-    # Disarm
+    ## Disarm ##
+    send_manual_control(0,0,500,0)  # wait 3 sec to disarm
+    time.sleep(3)
     master.arducopter_disarm()
     print("Waiting for the vehicle to disarm")
     # Wait for disarm

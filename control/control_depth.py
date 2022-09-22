@@ -124,7 +124,7 @@ try:
             print(msg.press_abs)
             z_ = z_controller.update(msg.press_abs)
             print(z_)
-            z = 500 + z_
+            z = 500 - z_
         if(z):
             send_manual_control(0,0,z,0)
         time.sleep(0.01)
