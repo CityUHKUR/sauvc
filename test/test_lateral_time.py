@@ -85,8 +85,6 @@ try:
     while (time.time() - t < 30):
         send_manual_control(0,400,500,0)
 
-
-
     # Disarm
     send_manual_control(0,0,500,0)  # wait 3 sec to disarm
     time.sleep(3)
